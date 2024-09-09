@@ -74,7 +74,7 @@ This plugin is licensed under the [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0
 
 ## Support
 
-For support, please open an issue on the [GitHub repository](https://github.com/your-username/rul-teams/issues).
+For support, please open an issue on the [GitHub repository](https://github.com/mustafa-Mlab/rul-teams/issues).
 
 ---
 
