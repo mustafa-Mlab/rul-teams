@@ -70,7 +70,7 @@ The plugin uses a custom database table named `rul_teams` with the following col
 
 ## License
 
-This plugin is licensed under the [GPL-2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html) license.
+This plugin is licensed under the [GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) license.
 
 ## Support
 
