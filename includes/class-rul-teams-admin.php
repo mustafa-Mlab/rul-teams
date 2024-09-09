@@ -212,7 +212,7 @@ class RUL_Teams_List_Table extends WP_List_Table {
         global $wpdb;
     
         $table_name = $wpdb->prefix . 'rul_teams';
-        $search = (isset($_POST['s'])) ? trim($_POST['s']) : '';
+        $search = (isset($_REQUEST['s'])) ? trim($_REQUEST['s']) : '';
     
         // Get sorting parameters
         $orderby = !empty($_GET['orderby']) ? esc_sql($_GET['orderby']) : 'id'; // Default to 'id'
@@ -220,7 +220,11 @@ class RUL_Teams_List_Table extends WP_List_Table {
     
         // Query the data from the database
         if ($search) {
-            $query = $wpdb->prepare("SELECT * FROM $table_name WHERE member_name LIKE %s OR designation LIKE %s ORDER BY $orderby $order", '%' . $wpdb->esc_like($search) . '%', '%' . $wpdb->esc_like($search) . '%');
+            $query = $wpdb->prepare(
+                "SELECT * FROM $table_name WHERE member_name LIKE %s OR designation LIKE %s ORDER BY $orderby $order",
+                '%' . $wpdb->esc_like($search) . '%',
+                '%' . $wpdb->esc_like($search) . '%'
+            );
         } else {
             $query = "SELECT * FROM $table_name ORDER BY $orderby $order";
         }
@@ -242,6 +246,7 @@ class RUL_Teams_List_Table extends WP_List_Table {
     
         $this->_column_headers = array($this->get_columns(), array(), $this->get_sortable_columns());
     }
+    
     
     
 
