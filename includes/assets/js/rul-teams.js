@@ -1,26 +1,4 @@
 jQuery(document).ready(function($) {
-    $('.delete-member').on('click', function() {
-        var memberId = $(this).data('id');
-
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'rul_delete_member',
-                id: memberId
-            },
-            success: function(response) {
-                console.log(response);
-                if (response.success) {
-                    alert('Member deleted successfully.');
-                    // location.reload();
-                }
-            }
-        });
-    });
-});
-
-jQuery(document).ready(function($) {
     // Attach click event handler to the delete button
     $('.ajax-delete').on('click', function(e) {
         e.preventDefault();
@@ -30,7 +8,7 @@ jQuery(document).ready(function($) {
             var nonce = $(this).data('nonce');
 
             $.ajax({
-                url: ajaxurl, // WordPress AJAX URL
+                url: ajaxurl, 
                 type: 'POST',
                 data: {
                     action: 'rul_delete_team_member', // The action name
@@ -40,7 +18,7 @@ jQuery(document).ready(function($) {
                 success: function(response) {
                     if (response.success) {
                         alert('Team member deleted successfully!');
-                        location.reload(); // Refresh the page after deletion
+                        location.reload(); 
                     } else {
                         alert('Failed to delete team member.');
                     }
@@ -49,6 +27,35 @@ jQuery(document).ready(function($) {
                     alert('An error occurred while deleting the member.');
                 }
             });
+        }
+    });
+
+    // For Bulk action
+    $('#doaction').click(function() {
+        var action = $('#bulk-action-selector-top').val();
+        if (action === 'delete') {
+            var ids = [];
+            $('input[name="bulk-delete[]"]:checked').each(function() {
+                ids.push($(this).val());
+            });
+
+            if (ids.length > 0) {
+                var data = {
+                    action: 'rul_delete_team_member',
+                    nonce: ajax_params.nonce,
+                    member_ids: ids
+                };
+
+                $.post(ajaxurl, data, function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.data);
+                    }
+                });
+            } else {
+                alert('No items selected.');
+            }
         }
     });
 });

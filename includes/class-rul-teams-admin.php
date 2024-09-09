@@ -30,25 +30,53 @@ class RUL_Teams_Admin {
         global $wpdb;
         $table = new RUL_Teams_List_Table();
         $table->prepare_items();
+        
+        // Handle bulk actions
+        if (isset($_POST['doaction']) && $_POST['doaction'] === 'delete') {
+            // Check nonce for security
+            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'bulk-teams')) {
+                wp_die('Nonce verification failed');
+            }
     
-        // Check if there's an edit action
-        if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['team_member'])) {
-            $this->display_edit_member_page();
-            return; // Exit to prevent the default team page from rendering
+            // Process bulk delete
+            $ids_to_delete = isset($_POST['bulk-delete']) ? array_map('intval', $_POST['bulk-delete']) : [];
+            
+            if (!empty($ids_to_delete)) {
+                global $wpdb;
+                $table_name = $wpdb->prefix . 'rul_teams';
+    
+                $placeholders = implode(',', array_fill(0, count($ids_to_delete), '%d'));
+                $query = $wpdb->prepare("DELETE FROM $table_name WHERE id IN ($placeholders)", $ids_to_delete);
+    
+                $deleted = $wpdb->query($query);
+    
+                if ($deleted !== false) {
+                    echo '<div id="message" class="updated notice is-dismissible"><p>Team members deleted successfully.</p></div>';
+                } else {
+                    echo '<div id="message" class="error notice is-dismissible"><p>Failed to delete team members.</p></div>';
+                }
+            }
         }
-    
+        
         // Output the heading and the "Add New" button
         echo '<div class="wrap">';
         echo '<h2 style="display: inline-block;">Team Members</h2>';
         echo '<a href="?page=rul-teams-add" class="page-title-action" style="margin-left: 10px;">Add New</a>';
         
-        // Add a form for the table search box and display table
-        echo '<form method="post">';
-        $table->search_box('Search Members', 'search_id');
-        $table->display();
-        echo '</form>';
-        echo '</div>';
+        // Start form
+        ?>
+        <form id="bulk-action-form" method="post">
+            <?php
+            wp_nonce_field('bulk-teams');    
+            $table->search_box('Search Members', 'search_id');
+            $table->display();
+            ?>
+        </form>
+        </div>
+        <?php
     }
+    
+    
     
 
     public function display_add_member_page() {
@@ -156,6 +184,14 @@ class RUL_Teams_Admin {
                 true
             );
     
+            wp_localize_script(
+                'rul-teams-js',
+                'ajax_params',
+                array(
+                    'nonce' => wp_create_nonce('rul_delete_team_member')
+                )
+            );
+    
             // Enqueue CSS
             wp_enqueue_style(
                 'rul-teams-css',
@@ -163,29 +199,38 @@ class RUL_Teams_Admin {
             );
         }
     }
+    
 
     public function ajax_delete_team_member() {
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rul_delete_team_member')) {
             wp_send_json_error('Invalid nonce');
         }
     
-        // Check if user has the right capability
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Permission denied');
         }
     
         global $wpdb;
-        $table_name = $wpdb->prefix . 'rul_teams'; 
-
-        $member_id = intval($_POST['member_id']);
-        $delete = $wpdb->delete($table_name, ['id' => $member_id], ['%d']);
+        $table_name = $wpdb->prefix . 'rul_teams';
     
-        if ($delete) {
-            wp_send_json_success();
+        $member_ids = isset($_POST['member_ids']) ? array_map('intval', $_POST['member_ids']) : [];
+    
+        if (!empty($member_ids)) {
+            $placeholders = implode(',', array_fill(0, count($member_ids), '%d'));
+            $query = $wpdb->prepare("DELETE FROM $table_name WHERE id IN ($placeholders)", $member_ids);
+    
+            $deleted = $wpdb->query($query);
+    
+            if ($deleted !== false) {
+                wp_send_json_success();
+            } else {
+                wp_send_json_error('Failed to delete team members');
+            }
         } else {
-            wp_send_json_error('Failed to delete team member');
+            wp_send_json_error('No member IDs provided');
         }
     }
+    
     
 }
 
